@@ -17,9 +17,10 @@ export default function CustomersPage() {
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
 
   useEffect(() => {
-    getCustomers().then(setCustomers);
+    getCustomers().then(setCustomers).catch(() => setError("שגיאה בטעינת לקוחות"));
   }, []);
 
   const filtered = customers.filter(
@@ -32,6 +33,7 @@ export default function CustomersPage() {
     setEditCustomer(null);
     setName("");
     setPhone("");
+    setError("");
     setShowForm(true);
   }
 
@@ -40,21 +42,26 @@ export default function CustomersPage() {
     setEditCustomer(c);
     setName(c.name);
     setPhone(c.phone);
+    setError("");
     setShowForm(true);
   }
 
   async function handleSave() {
     if (!name.trim() || !phone.trim()) return;
     setSaving(true);
+    setError("");
     try {
       if (editCustomer) {
         const updated = await updateCustomer(editCustomer.id, name.trim(), phone.trim());
         setCustomers((prev) => prev.map((c) => (c.id === updated.id ? updated : c)));
       } else {
         const created = await createCustomer(name.trim(), phone.trim());
-        setCustomers((prev) => [...prev, created].sort((a, b) => a.name.localeCompare(b.name)));
+        setCustomers((prev) => [...prev, created].sort((a, b) => a.name.localeCompare(b.name, "he")));
       }
       setShowForm(false);
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : String(e);
+      setError(msg || "שגיאה בשמירה — בדוק הרשאות RLS ב-Supabase");
     } finally {
       setSaving(false);
     }
@@ -113,10 +120,19 @@ export default function CustomersPage() {
         ))}
       </div>
 
-      {/* Customer form modal */}
+      {/* Bottom-sheet modal */}
       {showForm && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-end">
-          <div className="bg-white w-full rounded-t-3xl p-6 space-y-4">
+        <div
+          className="fixed inset-0 bg-black/50 z-50 flex items-end"
+          onClick={() => setShowForm(false)}
+        >
+          <div
+            className="bg-white w-full rounded-t-3xl p-6 pb-[max(1.5rem,env(safe-area-inset-bottom))] space-y-4"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Drag handle */}
+            <div className="w-10 h-1 bg-gray-300 rounded-full mx-auto -mt-2 mb-2" />
+
             <h2 className="text-xl font-bold text-gray-800">
               {editCustomer ? "עריכת לקוח" : "לקוח חדש"}
             </h2>
@@ -144,17 +160,21 @@ export default function CustomersPage() {
               />
             </div>
 
+            {error && (
+              <p className="text-red-500 text-sm bg-red-50 px-3 py-2 rounded-xl">{error}</p>
+            )}
+
             <div className="flex gap-3">
               <button
                 onClick={() => setShowForm(false)}
-                className="flex-1 border border-gray-300 text-gray-700 font-semibold py-3 rounded-xl"
+                className="flex-1 border border-gray-300 text-gray-700 font-semibold py-4 rounded-xl text-base"
               >
                 ביטול
               </button>
               <button
                 onClick={handleSave}
                 disabled={saving || !name.trim() || !phone.trim()}
-                className="flex-1 bg-green-600 text-white font-semibold py-3 rounded-xl disabled:opacity-60"
+                className="flex-1 bg-green-600 text-white font-semibold py-4 rounded-xl text-base disabled:opacity-60"
               >
                 {saving ? "שומר..." : "שמור"}
               </button>

@@ -125,8 +125,15 @@ export default function CustomerDetailsPage() {
 
       {/* Edit modal */}
       {showEdit && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-end">
-          <div className="bg-white w-full rounded-t-3xl p-6 space-y-4">
+        <div
+          className="fixed inset-0 bg-black/50 z-50 flex items-end"
+          onClick={() => setShowEdit(false)}
+        >
+          <div
+            className="bg-white w-full rounded-t-3xl p-6 pb-[max(1.5rem,env(safe-area-inset-bottom))] space-y-4"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="w-10 h-1 bg-gray-300 rounded-full mx-auto -mt-2 mb-2" />
             <h2 className="text-xl font-bold text-gray-800">עריכת לקוח</h2>
 
             <div>
@@ -152,14 +159,14 @@ export default function CustomerDetailsPage() {
             <div className="flex gap-3">
               <button
                 onClick={() => setShowEdit(false)}
-                className="flex-1 border border-gray-300 text-gray-700 font-semibold py-3 rounded-xl"
+                className="flex-1 border border-gray-300 text-gray-700 font-semibold py-4 rounded-xl text-base"
               >
                 ביטול
               </button>
               <button
                 onClick={handleSave}
                 disabled={saving}
-                className="flex-1 bg-green-600 text-white font-semibold py-3 rounded-xl disabled:opacity-60"
+                className="flex-1 bg-green-600 text-white font-semibold py-4 rounded-xl text-base disabled:opacity-60"
               >
                 {saving ? "שומר..." : "שמור"}
               </button>
