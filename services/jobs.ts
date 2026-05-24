@@ -43,6 +43,7 @@ export async function getUnpaidJobs() {
     .from("jobs")
     .select("*, customer:customers(*)")
     .eq("paid", false)
+    .neq("status", "cancelled")
     .order("date", { ascending: true });
   if (error) throw error;
   return data as Job[];
