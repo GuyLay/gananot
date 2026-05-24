@@ -43,3 +43,8 @@ export async function updateCustomer(id: string, name: string, phone: string) {
   if (error) throw error;
   return data as Customer;
 }
+
+export async function deleteCustomer(id: string) {
+  const { error } = await supabase.from("customers").delete().eq("id", id);
+  if (error) throw error;
+}

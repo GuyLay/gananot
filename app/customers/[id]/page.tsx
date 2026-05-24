@@ -4,11 +4,11 @@ import { useEffect, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { format } from "date-fns";
 import { he } from "date-fns/locale";
-import { Phone, Plus, Edit } from "lucide-react";
+import { Phone, Plus, Edit, Trash2 } from "lucide-react";
 import AppShell from "@/app/components/AppShell";
 import PageHeader from "@/app/components/PageHeader";
 import StatusBadge from "@/app/components/StatusBadge";
-import { getCustomer, updateCustomer } from "@/services/customers";
+import { getCustomer, updateCustomer, deleteCustomer } from "@/services/customers";
 import { getJobsByCustomer } from "@/services/jobs";
 import { extractMessage } from "@/lib/error";
 import { useKeyboardOffset } from "@/hooks/useKeyboardOffset";
@@ -22,11 +22,18 @@ export default function CustomerDetailsPage() {
   const [jobs, setJobs] = useState<Job[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
+
+  // Edit state
   const [showEdit, setShowEdit] = useState(false);
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState("");
+
+  // Delete state
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState("");
 
   useEffect(() => {
     setLoadError(null);
@@ -58,6 +65,18 @@ export default function CustomerDetailsPage() {
     }
   }
 
+  async function handleDelete() {
+    setDeleting(true);
+    setDeleteError("");
+    try {
+      await deleteCustomer(id);
+      router.push("/customers");
+    } catch (e: unknown) {
+      setDeleteError(extractMessage(e) || "שגיאה במחיקה");
+      setDeleting(false);
+    }
+  }
+
   if (loading) {
     return (
       <AppShell>
@@ -73,10 +92,7 @@ export default function CustomerDetailsPage() {
         <PageHeader title="פרטי לקוח" back />
         <div className="p-6 text-center space-y-3">
           <p className="text-red-500 text-base">{loadError ?? "הלקוח לא נמצא"}</p>
-          <button
-            onClick={() => router.back()}
-            className="text-green-600 font-semibold underline"
-          >
+          <button onClick={() => router.back()} className="text-green-600 font-semibold underline">
             חזור
           </button>
         </div>
@@ -90,7 +106,7 @@ export default function CustomerDetailsPage() {
         title="פרטי לקוח"
         back
         action={
-          <button onClick={() => setShowEdit(true)} className="p-2 text-gray-500">
+          <button onClick={() => setShowEdit(true)} className="p-2 text-gray-500 min-w-[44px] min-h-[44px] flex items-center justify-center">
             <Edit className="w-5 h-5" />
           </button>
         }
@@ -100,10 +116,7 @@ export default function CustomerDetailsPage() {
         {/* Customer info */}
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 space-y-2">
           <h2 className="text-xl font-bold text-gray-800">{customer.name}</h2>
-          <a
-            href={`tel:${customer.phone}`}
-            className="flex items-center gap-2 text-blue-600 text-base"
-          >
+          <a href={`tel:${customer.phone}`} className="flex items-center gap-2 text-blue-600 text-base">
             <Phone className="w-5 h-5" />
             {customer.phone}
           </a>
@@ -120,9 +133,7 @@ export default function CustomerDetailsPage() {
 
         {/* Jobs list */}
         <div>
-          <h3 className="font-semibold text-gray-600 mb-2 text-sm">
-            עבודות ({jobs.length})
-          </h3>
+          <h3 className="font-semibold text-gray-600 mb-2 text-sm">עבודות ({jobs.length})</h3>
           {jobs.length === 0 && (
             <div className="text-center text-gray-400 py-8">אין עבודות עדיין</div>
           )}
@@ -149,9 +160,18 @@ export default function CustomerDetailsPage() {
             ))}
           </div>
         </div>
+
+        {/* Delete button */}
+        <button
+          onClick={() => setShowDeleteConfirm(true)}
+          className="w-full flex items-center justify-center gap-2 border border-red-200 text-red-500 font-medium py-3.5 rounded-2xl active:bg-red-50 mt-2"
+        >
+          <Trash2 className="w-4 h-4" />
+          מחק לקוח
+        </button>
       </div>
 
-      {/* Edit modal */}
+      {/* ── Edit modal ── */}
       {showEdit && (
         <div
           className="fixed inset-0 bg-black/50 z-[60] flex items-end"
@@ -159,8 +179,11 @@ export default function CustomerDetailsPage() {
           onClick={() => setShowEdit(false)}
         >
           <div
-            className="bg-white w-full rounded-t-3xl p-6 pb-[max(1.5rem,env(safe-area-inset-bottom))] space-y-4 overflow-y-auto"
-            style={{ maxHeight: `calc(100dvh - ${kbOffset}px - 24px)` }}
+            className="bg-white w-full rounded-t-3xl p-6 space-y-4 overflow-y-auto"
+            style={{
+              paddingBottom: `max(1.5rem, env(safe-area-inset-bottom, 0px))`,
+              maxHeight: `calc(100dvh - ${kbOffset}px - 24px)`,
+            }}
             onClick={(e) => e.stopPropagation()}
           >
             <div className="w-10 h-1 bg-gray-300 rounded-full mx-auto -mt-2 mb-2" />
@@ -205,6 +228,60 @@ export default function CustomerDetailsPage() {
                 className="flex-1 bg-green-600 text-white font-semibold py-4 rounded-xl text-base disabled:opacity-60"
               >
                 {saving ? "שומר..." : "שמור"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Delete confirmation modal ── */}
+      {showDeleteConfirm && (
+        <div
+          className="fixed inset-0 bg-black/50 z-[60] flex items-end"
+          onClick={() => !deleting && setShowDeleteConfirm(false)}
+        >
+          <div
+            className="bg-white w-full rounded-t-3xl p-6 space-y-4"
+            style={{ paddingBottom: `max(1.5rem, env(safe-area-inset-bottom, 0px))` }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="w-10 h-1 bg-gray-300 rounded-full mx-auto -mt-2 mb-2" />
+
+            <div className="text-center space-y-2 py-2">
+              <div className="w-14 h-14 rounded-full bg-red-100 flex items-center justify-center mx-auto">
+                <Trash2 className="w-7 h-7 text-red-500" />
+              </div>
+              <h2 className="text-xl font-bold text-gray-800">מחיקת לקוח</h2>
+              <p className="text-gray-500 text-sm">
+                האם למחוק את <span className="font-semibold text-gray-700">{customer.name}</span>?
+                {jobs.length > 0 && (
+                  <span className="block mt-1 text-red-500">
+                    {jobs.length} עבודות קשורות יימחקו גם הן
+                  </span>
+                )}
+              </p>
+            </div>
+
+            {deleteError && (
+              <p className="text-red-600 text-sm bg-red-50 border border-red-200 px-3 py-2 rounded-xl text-center">
+                {deleteError}
+              </p>
+            )}
+
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowDeleteConfirm(false)}
+                disabled={deleting}
+                className="flex-1 border border-gray-300 text-gray-700 font-semibold py-4 rounded-xl text-base disabled:opacity-60"
+              >
+                ביטול
+              </button>
+              <button
+                onClick={handleDelete}
+                disabled={deleting}
+                className="flex-1 bg-red-500 text-white font-semibold py-4 rounded-xl text-base disabled:opacity-60"
+              >
+                {deleting ? "מוחק..." : "מחק"}
               </button>
             </div>
           </div>
