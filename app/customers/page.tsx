@@ -18,6 +18,7 @@ export default function CustomersPage() {
   const [editCustomer, setEditCustomer] = useState<Customer | null>(null);
   const [editName, setEditName] = useState("");
   const [editPhone, setEditPhone] = useState("");
+  const [editAddress, setEditAddress] = useState("");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
 
@@ -35,6 +36,7 @@ export default function CustomersPage() {
     setEditCustomer(c);
     setEditName(c.name);
     setEditPhone(c.phone);
+    setEditAddress(c.address ?? "");
     setError("");
   }
 
@@ -48,7 +50,7 @@ export default function CustomersPage() {
     setSaving(true);
     setError("");
     try {
-      const updated = await updateCustomer(editCustomer.id, editName.trim(), editPhone.trim());
+      const updated = await updateCustomer(editCustomer.id, editName.trim(), editPhone.trim(), editAddress.trim());
       setCustomers((prev) => prev.map((c) => (c.id === updated.id ? updated : c)));
       closeEdit();
     } catch (e: unknown) {
@@ -156,6 +158,19 @@ export default function CustomersPage() {
                 value={editPhone}
                 onChange={(e) => setEditPhone(e.target.value)}
                 className="w-full border border-gray-300 rounded-xl px-4 py-3 text-base focus:outline-none focus:ring-2 focus:ring-green-500"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                כתובת <span className="text-gray-400 font-normal">(אופציונלי)</span>
+              </label>
+              <input
+                type="text"
+                value={editAddress}
+                onChange={(e) => setEditAddress(e.target.value)}
+                className="w-full border border-gray-300 rounded-xl px-4 py-3 text-base focus:outline-none focus:ring-2 focus:ring-green-500"
+                placeholder="רחוב, עיר"
               />
             </div>
 

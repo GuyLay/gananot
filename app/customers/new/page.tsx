@@ -11,6 +11,7 @@ export default function NewCustomerPage() {
   const router = useRouter();
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
+  const [address, setAddress] = useState("");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
 
@@ -19,7 +20,7 @@ export default function NewCustomerPage() {
     setSaving(true);
     setError("");
     try {
-      await createCustomer(name.trim(), phone.trim());
+      await createCustomer(name.trim(), phone.trim(), address.trim());
       router.push("/customers");
     } catch (e: unknown) {
       setError(extractMessage(e) || "שגיאה בשמירה");
@@ -59,6 +60,19 @@ export default function NewCustomerPage() {
             onChange={(e) => setPhone(e.target.value)}
             className="w-full border border-gray-300 rounded-xl px-4 py-3 text-base focus:outline-none focus:ring-2 focus:ring-green-500"
             placeholder="050-0000000"
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            כתובת <span className="text-gray-400 font-normal">(אופציונלי)</span>
+          </label>
+          <input
+            type="text"
+            value={address}
+            onChange={(e) => setAddress(e.target.value)}
+            className="w-full border border-gray-300 rounded-xl px-4 py-3 text-base focus:outline-none focus:ring-2 focus:ring-green-500"
+            placeholder="רחוב, עיר"
           />
         </div>
 

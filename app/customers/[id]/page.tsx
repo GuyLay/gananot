@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { format } from "date-fns";
 import { he } from "date-fns/locale";
-import { Phone, Plus, Edit, Trash2 } from "lucide-react";
+import { Phone, Plus, Edit, Trash2, MapPin } from "lucide-react";
 import AppShell from "@/app/components/AppShell";
 import PageHeader from "@/app/components/PageHeader";
 import StatusBadge from "@/app/components/StatusBadge";
@@ -27,6 +27,7 @@ export default function CustomerDetailsPage() {
   const [showEdit, setShowEdit] = useState(false);
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
+  const [address, setAddress] = useState("");
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState("");
 
@@ -43,6 +44,7 @@ export default function CustomerDetailsPage() {
         setJobs(j);
         setName(c.name);
         setPhone(c.phone);
+        setAddress(c.address ?? "");
       })
       .catch((e: unknown) => {
         setLoadError(extractMessage(e) || "שגיאה בטעינת פרטי לקוח");
@@ -55,7 +57,7 @@ export default function CustomerDetailsPage() {
     setSaving(true);
     setSaveError("");
     try {
-      const updated = await updateCustomer(id, name.trim(), phone.trim());
+      const updated = await updateCustomer(id, name.trim(), phone.trim(), address.trim());
       setCustomer(updated);
       setShowEdit(false);
     } catch (e: unknown) {
@@ -120,6 +122,17 @@ export default function CustomerDetailsPage() {
             <Phone className="w-5 h-5" />
             {customer.phone}
           </a>
+          {customer.address && (
+            <a
+              href={`https://maps.google.com/?q=${encodeURIComponent(customer.address)}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-2 text-gray-600 text-sm"
+            >
+              <MapPin className="w-4 h-4 text-gray-400 flex-shrink-0" />
+              {customer.address}
+            </a>
+          )}
         </div>
 
         {/* Add job button */}
@@ -206,6 +219,19 @@ export default function CustomerDetailsPage() {
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
                 className="w-full border border-gray-300 rounded-xl px-4 py-3 text-base focus:outline-none focus:ring-2 focus:ring-green-500"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                כתובת <span className="text-gray-400 font-normal">(אופציונלי)</span>
+              </label>
+              <input
+                type="text"
+                value={address}
+                onChange={(e) => setAddress(e.target.value)}
+                className="w-full border border-gray-300 rounded-xl px-4 py-3 text-base focus:outline-none focus:ring-2 focus:ring-green-500"
+                placeholder="רחוב, עיר"
               />
             </div>
 

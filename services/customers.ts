@@ -20,23 +20,23 @@ export async function getCustomer(id: string) {
   return data as Customer;
 }
 
-export async function createCustomer(name: string, phone: string) {
+export async function createCustomer(name: string, phone: string, address?: string) {
   const { data: userData } = await supabase.auth.getUser();
   const user_id = userData.user!.id;
 
   const { data, error } = await supabase
     .from("customers")
-    .insert({ name, phone, user_id })
+    .insert({ name, phone, address: address || null, user_id })
     .select()
     .single();
   if (error) throw error;
   return data as Customer;
 }
 
-export async function updateCustomer(id: string, name: string, phone: string) {
+export async function updateCustomer(id: string, name: string, phone: string, address?: string) {
   const { data, error } = await supabase
     .from("customers")
-    .update({ name, phone })
+    .update({ name, phone, address: address || null })
     .eq("id", id)
     .select()
     .single();
