@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { Search, Plus, Phone, ChevronLeft } from "lucide-react";
 import AppShell from "@/app/components/AppShell";
 import PageHeader from "@/app/components/PageHeader";
-import { getCustomers, createCustomer, updateCustomer } from "@/services/customers";
+import { getCustomers, updateCustomer } from "@/services/customers";
 import { extractMessage } from "@/lib/error";
 import { useKeyboardOffset } from "@/hooks/useKeyboardOffset";
 import type { Customer } from "@/types/database";
@@ -15,15 +15,14 @@ export default function CustomersPage() {
   const kbOffset = useKeyboardOffset();
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [search, setSearch] = useState("");
-  const [showForm, setShowForm] = useState(false);
   const [editCustomer, setEditCustomer] = useState<Customer | null>(null);
-  const [name, setName] = useState("");
-  const [phone, setPhone] = useState("");
+  const [editName, setEditName] = useState("");
+  const [editPhone, setEditPhone] = useState("");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
 
   useEffect(() => {
-    getCustomers().then(setCustomers).catch(() => setError("שגיאה בטעינת לקוחות"));
+    getCustomers().then(setCustomers).catch(console.error);
   }, []);
 
   const filtered = customers.filter(
@@ -32,35 +31,26 @@ export default function CustomersPage() {
       c.phone.includes(search)
   );
 
-  function openAdd() {
-    setEditCustomer(null);
-    setName("");
-    setPhone("");
-    setError("");
-    setShowForm(true);
-  }
-
   function openEdit(c: Customer) {
     setEditCustomer(c);
-    setName(c.name);
-    setPhone(c.phone);
+    setEditName(c.name);
+    setEditPhone(c.phone);
     setError("");
-    setShowForm(true);
+  }
+
+  function closeEdit() {
+    setEditCustomer(null);
+    setError("");
   }
 
   async function handleSave() {
-    if (!name.trim() || !phone.trim()) return;
+    if (!editCustomer || !editName.trim() || !editPhone.trim()) return;
     setSaving(true);
     setError("");
     try {
-      if (editCustomer) {
-        const updated = await updateCustomer(editCustomer.id, name.trim(), phone.trim());
-        setCustomers((prev) => prev.map((c) => (c.id === updated.id ? updated : c)));
-      } else {
-        const created = await createCustomer(name.trim(), phone.trim());
-        setCustomers((prev) => [...prev, created].sort((a, b) => a.name.localeCompare(b.name, "he")));
-      }
-      setShowForm(false);
+      const updated = await updateCustomer(editCustomer.id, editName.trim(), editPhone.trim());
+      setCustomers((prev) => prev.map((c) => (c.id === updated.id ? updated : c)));
+      closeEdit();
     } catch (e: unknown) {
       setError(extractMessage(e) || "שגיאה בשמירה");
     } finally {
@@ -73,7 +63,10 @@ export default function CustomersPage() {
       <PageHeader
         title="לקוחות"
         action={
-          <button onClick={openAdd} className="bg-green-600 text-white rounded-full p-2 shadow">
+          <button
+            onClick={() => router.push("/customers/new")}
+            className="bg-green-600 text-white rounded-full p-2 shadow min-w-[44px] min-h-[44px] flex items-center justify-center"
+          >
             <Plus className="w-5 h-5" />
           </button>
         }
@@ -128,32 +121,31 @@ export default function CustomersPage() {
         ))}
       </div>
 
-      {showForm && (
+      {/* Edit modal — bottom sheet */}
+      {editCustomer && (
         <div
           className="fixed inset-0 bg-black/50 z-[60] flex items-end"
           style={{ paddingBottom: kbOffset }}
-          onClick={() => setShowForm(false)}
+          onClick={closeEdit}
         >
           <div
-            className="bg-white w-full rounded-t-3xl p-6 pb-[max(1.5rem,env(safe-area-inset-bottom))] space-y-4 overflow-y-auto"
-            style={{ maxHeight: `calc(100dvh - ${kbOffset}px - 24px)` }}
+            className="bg-white w-full rounded-t-3xl p-6 space-y-4 overflow-y-auto"
+            style={{
+              paddingBottom: `max(1.5rem, env(safe-area-inset-bottom, 0px))`,
+              maxHeight: `calc(100dvh - ${kbOffset}px - 24px)`,
+            }}
             onClick={(e) => e.stopPropagation()}
           >
             <div className="w-10 h-1 bg-gray-300 rounded-full mx-auto -mt-2 mb-2" />
-
-            <h2 className="text-xl font-bold text-gray-800">
-              {editCustomer ? "עריכת לקוח" : "לקוח חדש"}
-            </h2>
+            <h2 className="text-xl font-bold text-gray-800">עריכת לקוח</h2>
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">שם</label>
               <input
                 type="text"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
+                value={editName}
+                onChange={(e) => setEditName(e.target.value)}
                 className="w-full border border-gray-300 rounded-xl px-4 py-3 text-base focus:outline-none focus:ring-2 focus:ring-green-500"
-                placeholder="שם הלקוח"
-                autoFocus
               />
             </div>
 
@@ -161,10 +153,9 @@ export default function CustomersPage() {
               <label className="block text-sm font-medium text-gray-700 mb-1">טלפון</label>
               <input
                 type="tel"
-                value={phone}
-                onChange={(e) => setPhone(e.target.value)}
+                value={editPhone}
+                onChange={(e) => setEditPhone(e.target.value)}
                 className="w-full border border-gray-300 rounded-xl px-4 py-3 text-base focus:outline-none focus:ring-2 focus:ring-green-500"
-                placeholder="050-0000000"
               />
             </div>
 
@@ -174,14 +165,14 @@ export default function CustomersPage() {
 
             <div className="flex gap-3">
               <button
-                onClick={() => setShowForm(false)}
+                onClick={closeEdit}
                 className="flex-1 border border-gray-300 text-gray-700 font-semibold py-4 rounded-xl text-base"
               >
                 ביטול
               </button>
               <button
                 onClick={handleSave}
-                disabled={saving || !name.trim() || !phone.trim()}
+                disabled={saving || !editName.trim() || !editPhone.trim()}
                 className="flex-1 bg-green-600 text-white font-semibold py-4 rounded-xl text-base disabled:opacity-60"
               >
                 {saving ? "שומר..." : "שמור"}
