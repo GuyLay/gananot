@@ -154,7 +154,7 @@ export default function CustomerDetailsPage() {
       {/* Edit modal */}
       {showEdit && (
         <div
-          className="fixed inset-0 bg-black/50 z-50 flex items-end"
+          className="fixed inset-0 bg-black/50 z-[60] flex items-end"
           style={{ paddingBottom: kbOffset }}
           onClick={() => setShowEdit(false)}
         >

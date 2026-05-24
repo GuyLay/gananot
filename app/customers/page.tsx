@@ -130,7 +130,7 @@ export default function CustomersPage() {
 
       {showForm && (
         <div
-          className="fixed inset-0 bg-black/50 z-50 flex items-end"
+          className="fixed inset-0 bg-black/50 z-[60] flex items-end"
           style={{ paddingBottom: kbOffset }}
           onClick={() => setShowForm(false)}
         >
