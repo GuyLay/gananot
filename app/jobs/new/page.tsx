@@ -38,7 +38,7 @@ function NewJobForm() {
     resolver: zodResolver(schema),
     defaultValues: {
       customer_id: searchParams.get("customer_id") ?? "",
-      date: format(new Date(), "yyyy-MM-dd"),
+      date: searchParams.get("date") ?? format(new Date(), "yyyy-MM-dd"),
     },
   });
 
