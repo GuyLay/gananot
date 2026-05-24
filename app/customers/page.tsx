@@ -6,6 +6,7 @@ import { Search, Plus, Phone, ChevronLeft } from "lucide-react";
 import AppShell from "@/app/components/AppShell";
 import PageHeader from "@/app/components/PageHeader";
 import { getCustomers, createCustomer, updateCustomer } from "@/services/customers";
+import { extractMessage } from "@/lib/error";
 import type { Customer } from "@/types/database";
 
 export default function CustomersPage() {
@@ -59,8 +60,7 @@ export default function CustomersPage() {
       }
       setShowForm(false);
     } catch (e: unknown) {
-      const msg = e instanceof Error ? e.message : String(e);
-      setError(msg || "שגיאה בשמירה");
+      setError(extractMessage(e) || "שגיאה בשמירה");
     } finally {
       setSaving(false);
     }

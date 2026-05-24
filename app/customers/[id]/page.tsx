@@ -10,6 +10,7 @@ import PageHeader from "@/app/components/PageHeader";
 import StatusBadge from "@/app/components/StatusBadge";
 import { getCustomer, updateCustomer } from "@/services/customers";
 import { getJobsByCustomer } from "@/services/jobs";
+import { extractMessage } from "@/lib/error";
 import type { Customer, Job } from "@/types/database";
 
 export default function CustomerDetailsPage() {
@@ -23,6 +24,7 @@ export default function CustomerDetailsPage() {
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState("");
 
   useEffect(() => {
     setLoadError(null);
@@ -34,8 +36,7 @@ export default function CustomerDetailsPage() {
         setPhone(c.phone);
       })
       .catch((e: unknown) => {
-        const msg = e instanceof Error ? e.message : String(e);
-        setLoadError(msg || "שגיאה בטעינת פרטי לקוח");
+        setLoadError(extractMessage(e) || "שגיאה בטעינת פרטי לקוח");
       })
       .finally(() => setLoading(false));
   }, [id]);
@@ -43,10 +44,13 @@ export default function CustomerDetailsPage() {
   async function handleSave() {
     if (!name.trim() || !phone.trim()) return;
     setSaving(true);
+    setSaveError("");
     try {
       const updated = await updateCustomer(id, name.trim(), phone.trim());
       setCustomer(updated);
       setShowEdit(false);
+    } catch (e: unknown) {
+      setSaveError(extractMessage(e) || "שגיאה בשמירה");
     } finally {
       setSaving(false);
     }
@@ -177,6 +181,12 @@ export default function CustomerDetailsPage() {
                 className="w-full border border-gray-300 rounded-xl px-4 py-3 text-base focus:outline-none focus:ring-2 focus:ring-green-500"
               />
             </div>
+
+            {saveError && (
+              <p className="text-red-600 text-sm bg-red-50 border border-red-200 px-3 py-2 rounded-xl">
+                {saveError}
+              </p>
+            )}
 
             <div className="flex gap-3">
               <button

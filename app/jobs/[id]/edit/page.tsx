@@ -10,6 +10,7 @@ import AppShell from "@/app/components/AppShell";
 import PageHeader from "@/app/components/PageHeader";
 import { getJob, updateJob } from "@/services/jobs";
 import { getCustomers } from "@/services/customers";
+import { extractMessage } from "@/lib/error";
 import type { Customer, Job } from "@/types/database";
 
 const schema = z.object({
@@ -66,8 +67,7 @@ export default function EditJobPage() {
       });
       router.back();
     } catch (e: unknown) {
-      const msg = e instanceof Error ? e.message : String(e);
-      setError(msg || "שגיאה בשמירה");
+      setError(extractMessage(e) || "שגיאה בשמירה");
     } finally {
       setSaving(false);
     }
@@ -86,6 +86,11 @@ export default function EditJobPage() {
     <AppShell>
       <PageHeader title="עריכת עבודה" back />
       <form onSubmit={handleSubmit(onSubmit)} className="p-4 space-y-4">
+        {error && (
+          <div className="bg-red-50 border border-red-300 rounded-2xl px-4 py-3 text-red-700 text-sm font-medium">
+            {error}
+          </div>
+        )}
 
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">לקוח</label>
@@ -145,10 +150,6 @@ export default function EditJobPage() {
             placeholder="לדוגמה: 7, 14, 30"
           />
         </div>
-
-        {error && (
-          <p className="text-red-500 text-sm bg-red-50 px-3 py-2 rounded-xl">{error}</p>
-        )}
 
         <button
           type="submit"
