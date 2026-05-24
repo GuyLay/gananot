@@ -11,11 +11,13 @@ import StatusBadge from "@/app/components/StatusBadge";
 import { getCustomer, updateCustomer } from "@/services/customers";
 import { getJobsByCustomer } from "@/services/jobs";
 import { extractMessage } from "@/lib/error";
+import { useKeyboardOffset } from "@/hooks/useKeyboardOffset";
 import type { Customer, Job } from "@/types/database";
 
 export default function CustomerDetailsPage() {
   const router = useRouter();
   const { id } = useParams<{ id: string }>();
+  const kbOffset = useKeyboardOffset();
   const [customer, setCustomer] = useState<Customer | null>(null);
   const [jobs, setJobs] = useState<Job[]>([]);
   const [loading, setLoading] = useState(true);
@@ -153,10 +155,12 @@ export default function CustomerDetailsPage() {
       {showEdit && (
         <div
           className="fixed inset-0 bg-black/50 z-50 flex items-end"
+          style={{ paddingBottom: kbOffset }}
           onClick={() => setShowEdit(false)}
         >
           <div
-            className="bg-white w-full rounded-t-3xl p-6 pb-[max(1.5rem,env(safe-area-inset-bottom))] space-y-4"
+            className="bg-white w-full rounded-t-3xl p-6 pb-[max(1.5rem,env(safe-area-inset-bottom))] space-y-4 overflow-y-auto"
+            style={{ maxHeight: `calc(100dvh - ${kbOffset}px - 24px)` }}
             onClick={(e) => e.stopPropagation()}
           >
             <div className="w-10 h-1 bg-gray-300 rounded-full mx-auto -mt-2 mb-2" />

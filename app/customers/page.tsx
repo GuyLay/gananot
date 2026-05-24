@@ -7,10 +7,12 @@ import AppShell from "@/app/components/AppShell";
 import PageHeader from "@/app/components/PageHeader";
 import { getCustomers, createCustomer, updateCustomer } from "@/services/customers";
 import { extractMessage } from "@/lib/error";
+import { useKeyboardOffset } from "@/hooks/useKeyboardOffset";
 import type { Customer } from "@/types/database";
 
 export default function CustomersPage() {
   const router = useRouter();
+  const kbOffset = useKeyboardOffset();
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [search, setSearch] = useState("");
   const [showForm, setShowForm] = useState(false);
@@ -129,10 +131,12 @@ export default function CustomersPage() {
       {showForm && (
         <div
           className="fixed inset-0 bg-black/50 z-50 flex items-end"
+          style={{ paddingBottom: kbOffset }}
           onClick={() => setShowForm(false)}
         >
           <div
-            className="bg-white w-full rounded-t-3xl p-6 pb-[max(1.5rem,env(safe-area-inset-bottom))] space-y-4"
+            className="bg-white w-full rounded-t-3xl p-6 pb-[max(1.5rem,env(safe-area-inset-bottom))] space-y-4 overflow-y-auto"
+            style={{ maxHeight: `calc(100dvh - ${kbOffset}px - 24px)` }}
             onClick={(e) => e.stopPropagation()}
           >
             <div className="w-10 h-1 bg-gray-300 rounded-full mx-auto -mt-2 mb-2" />
