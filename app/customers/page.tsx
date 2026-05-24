@@ -37,8 +37,7 @@ export default function CustomersPage() {
     setShowForm(true);
   }
 
-  function openEdit(c: Customer, e: React.MouseEvent) {
-    e.stopPropagation();
+  function openEdit(c: Customer) {
     setEditCustomer(c);
     setName(c.name);
     setPhone(c.phone);
@@ -61,7 +60,7 @@ export default function CustomersPage() {
       setShowForm(false);
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : String(e);
-      setError(msg || "שגיאה בשמירה — בדוק הרשאות RLS ב-Supabase");
+      setError(msg || "שגיאה בשמירה");
     } finally {
       setSaving(false);
     }
@@ -97,10 +96,11 @@ export default function CustomersPage() {
         )}
 
         {filtered.map((c) => (
-          <button
+          // div instead of button — avoids invalid nested-button HTML
+          <div
             key={c.id}
             onClick={() => router.push(`/customers/${c.id}`)}
-            className="w-full bg-white rounded-2xl shadow-sm border border-gray-100 p-4 flex items-center gap-3 active:scale-[0.98] transition-transform"
+            className="w-full bg-white rounded-2xl shadow-sm border border-gray-100 p-4 flex items-center gap-3 active:scale-[0.98] transition-transform cursor-pointer"
           >
             <div className="flex-1 text-right">
               <div className="font-semibold text-gray-800 text-base">{c.name}</div>
@@ -110,17 +110,16 @@ export default function CustomersPage() {
               </div>
             </div>
             <button
-              onClick={(e) => openEdit(c, e)}
+              onClick={(e) => { e.stopPropagation(); openEdit(c); }}
               className="text-xs text-blue-600 px-3 py-1.5 bg-blue-50 rounded-lg"
             >
               עריכה
             </button>
             <ChevronLeft className="w-4 h-4 text-gray-300 flex-shrink-0" />
-          </button>
+          </div>
         ))}
       </div>
 
-      {/* Bottom-sheet modal */}
       {showForm && (
         <div
           className="fixed inset-0 bg-black/50 z-50 flex items-end"
@@ -130,7 +129,6 @@ export default function CustomersPage() {
             className="bg-white w-full rounded-t-3xl p-6 pb-[max(1.5rem,env(safe-area-inset-bottom))] space-y-4"
             onClick={(e) => e.stopPropagation()}
           >
-            {/* Drag handle */}
             <div className="w-10 h-1 bg-gray-300 rounded-full mx-auto -mt-2 mb-2" />
 
             <h2 className="text-xl font-bold text-gray-800">

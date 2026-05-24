@@ -28,6 +28,7 @@ function NewJobForm() {
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
 
   const { register, handleSubmit, formState: { errors } } = useForm<FormData>({
     resolver: zodResolver(schema),
@@ -45,6 +46,7 @@ function NewJobForm() {
 
   async function onSubmit(data: FormData) {
     setSaving(true);
+    setError("");
     try {
       const job = await createJob({
         customer_id: data.customer_id,
@@ -54,6 +56,9 @@ function NewJobForm() {
         recurrence_days: data.recurrence_days ?? undefined,
       });
       router.push(`/jobs/${job.id}`);
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : String(e);
+      setError(msg || "שגיאה בשמירה — בדוק הרשאות RLS ב-Supabase");
     } finally {
       setSaving(false);
     }
@@ -123,6 +128,10 @@ function NewJobForm() {
           placeholder="לדוגמה: 7, 14, 30"
         />
       </div>
+
+      {error && (
+        <p className="text-red-500 text-sm bg-red-50 px-3 py-2 rounded-xl">{error}</p>
+      )}
 
       <button
         type="submit"

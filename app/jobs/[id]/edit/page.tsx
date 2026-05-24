@@ -29,6 +29,7 @@ export default function EditJobPage() {
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
 
   const { register, handleSubmit, reset, formState: { errors } } = useForm<FormData>({
     resolver: zodResolver(schema),
@@ -51,6 +52,7 @@ export default function EditJobPage() {
   async function onSubmit(data: FormData) {
     if (!job) return;
     setSaving(true);
+    setError("");
     try {
       await updateJob(id, {
         customer_id: data.customer_id,
@@ -60,6 +62,9 @@ export default function EditJobPage() {
         recurrence_days: data.recurrence_days || null,
       });
       router.back();
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : String(e);
+      setError(msg || "שגיאה בשמירה");
     } finally {
       setSaving(false);
     }
@@ -137,6 +142,10 @@ export default function EditJobPage() {
             placeholder="לדוגמה: 7, 14, 30"
           />
         </div>
+
+        {error && (
+          <p className="text-red-500 text-sm bg-red-50 px-3 py-2 rounded-xl">{error}</p>
+        )}
 
         <button
           type="submit"
