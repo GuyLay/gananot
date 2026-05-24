@@ -17,7 +17,10 @@ const schema = z.object({
   date: z.string().min(1, "בחר תאריך"),
   price: z.coerce.number().min(0, "מחיר חייב להיות חיובי"),
   description: z.string().optional(),
-  recurrence_days: z.coerce.number().int().min(0).optional().nullable(),
+  recurrence_days: z.preprocess(
+    (v) => (v === "" || v === null || v === undefined ? null : Number(v)),
+    z.number().int().min(1, "חייב להיות לפחות יום אחד").nullable()
+  ),
 });
 
 type FormData = z.infer<typeof schema>;
@@ -56,10 +59,10 @@ export default function EditJobPage() {
     try {
       await updateJob(id, {
         customer_id: data.customer_id,
-        date: new Date(data.date).toISOString(),
+        date: data.date,
         price: data.price,
         description: data.description || null,
-        recurrence_days: data.recurrence_days || null,
+        recurrence_days: data.recurrence_days ?? null,
       });
       router.back();
     } catch (e: unknown) {

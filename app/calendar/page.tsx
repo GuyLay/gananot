@@ -52,18 +52,18 @@ export default function CalendarPage() {
 
   return (
     <AppShell>
-      <header className="sticky top-0 z-40 bg-white border-b border-gray-200 px-4 py-3 flex items-center">
-        <h1 className="flex-1 text-lg font-bold text-gray-800">יומן עבודות</h1>
+      <header className="sticky top-0 z-40 bg-white border-b border-gray-100 px-3 py-2 flex items-center min-h-[52px]">
+        <h1 className="flex-1 text-lg font-bold text-gray-800 px-1">יומן עבודות</h1>
         <button
           onClick={() => router.push("/jobs/new")}
-          className="bg-green-600 text-white rounded-full p-2 ml-2 shadow"
+          className="min-w-[44px] min-h-[44px] flex items-center justify-center bg-green-600 text-white rounded-full shadow active:opacity-80"
           aria-label="עבודה חדשה"
         >
           <Plus className="w-5 h-5" />
         </button>
         <button
           onClick={handleLogout}
-          className="p-2 text-gray-500"
+          className="min-w-[44px] min-h-[44px] flex items-center justify-center text-gray-400 active:opacity-60"
           aria-label="יציאה"
         >
           <LogOut className="w-5 h-5" />

@@ -18,12 +18,14 @@ export default function CustomerDetailsPage() {
   const [customer, setCustomer] = useState<Customer | null>(null);
   const [jobs, setJobs] = useState<Job[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [showEdit, setShowEdit] = useState(false);
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
+    setLoadError(null);
     Promise.all([getCustomer(id), getJobsByCustomer(id)])
       .then(([c, j]) => {
         setCustomer(c);
@@ -31,9 +33,12 @@ export default function CustomerDetailsPage() {
         setName(c.name);
         setPhone(c.phone);
       })
-      .catch(() => router.back())
+      .catch((e: unknown) => {
+        const msg = e instanceof Error ? e.message : String(e);
+        setLoadError(msg || "שגיאה בטעינת פרטי לקוח");
+      })
       .finally(() => setLoading(false));
-  }, [id, router]);
+  }, [id]);
 
   async function handleSave() {
     if (!name.trim() || !phone.trim()) return;
@@ -47,11 +52,28 @@ export default function CustomerDetailsPage() {
     }
   }
 
-  if (loading || !customer) {
+  if (loading) {
     return (
       <AppShell>
         <PageHeader title="פרטי לקוח" back />
         <div className="text-center text-gray-400 py-20">טוען...</div>
+      </AppShell>
+    );
+  }
+
+  if (loadError || !customer) {
+    return (
+      <AppShell>
+        <PageHeader title="פרטי לקוח" back />
+        <div className="p-6 text-center space-y-3">
+          <p className="text-red-500 text-base">{loadError ?? "הלקוח לא נמצא"}</p>
+          <button
+            onClick={() => router.back()}
+            className="text-green-600 font-semibold underline"
+          >
+            חזור
+          </button>
+        </div>
       </AppShell>
     );
   }

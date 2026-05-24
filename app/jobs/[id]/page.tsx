@@ -155,7 +155,7 @@ export default function JobDetailsPage() {
         {/* Delete */}
         <button
           onClick={handleDelete}
-          className="w-full flex items-center justify-center gap-2 py-3 text-red-500 text-sm"
+          className="w-full flex items-center justify-center gap-2 min-h-[44px] py-3 text-red-400 text-sm active:opacity-60"
         >
           <Trash2 className="w-4 h-4" />
           מחק עבודה

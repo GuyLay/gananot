@@ -27,7 +27,7 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-b from-green-50 to-green-100 px-6">
+    <div className="min-h-[100dvh] flex flex-col items-center justify-center bg-gradient-to-b from-green-50 to-green-100 px-6 py-10">
       <div className="w-full max-w-sm">
         <div className="flex flex-col items-center mb-10">
           <div className="bg-green-600 rounded-full p-4 mb-4 shadow-lg">

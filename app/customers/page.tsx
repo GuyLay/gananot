@@ -96,26 +96,32 @@ export default function CustomersPage() {
         )}
 
         {filtered.map((c) => (
-          // div instead of button — avoids invalid nested-button HTML
           <div
             key={c.id}
-            onClick={() => router.push(`/customers/${c.id}`)}
-            className="w-full bg-white rounded-2xl shadow-sm border border-gray-100 p-4 flex items-center gap-3 active:scale-[0.98] transition-transform cursor-pointer"
+            className="bg-white rounded-2xl shadow-sm border border-gray-100 flex items-stretch overflow-hidden active:opacity-80 transition-opacity"
           >
-            <div className="flex-1 text-right">
-              <div className="font-semibold text-gray-800 text-base">{c.name}</div>
-              <div className="flex items-center gap-1 text-gray-500 text-sm mt-0.5">
-                <Phone className="w-4 h-4" />
-                {c.phone}
+            <div
+              role="button"
+              tabIndex={0}
+              onClick={() => router.push(`/customers/${c.id}`)}
+              onKeyDown={(e) => e.key === "Enter" && router.push(`/customers/${c.id}`)}
+              className="flex-1 p-4 flex items-center gap-3 cursor-pointer"
+            >
+              <div className="flex-1 text-right">
+                <div className="font-semibold text-gray-800 text-base">{c.name}</div>
+                <div className="flex items-center gap-1 text-gray-500 text-sm mt-0.5">
+                  <Phone className="w-4 h-4" />
+                  {c.phone}
+                </div>
               </div>
+              <ChevronLeft className="w-4 h-4 text-gray-300 flex-shrink-0" />
             </div>
             <button
-              onClick={(e) => { e.stopPropagation(); openEdit(c); }}
-              className="text-xs text-blue-600 px-3 py-1.5 bg-blue-50 rounded-lg"
+              onClick={() => openEdit(c)}
+              className="px-4 text-sm text-blue-600 font-medium border-r border-gray-100 bg-blue-50 active:bg-blue-100"
             >
               עריכה
             </button>
-            <ChevronLeft className="w-4 h-4 text-gray-300 flex-shrink-0" />
           </div>
         ))}
       </div>

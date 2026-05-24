@@ -70,7 +70,7 @@ export default function JobsStatusPage() {
           <button
             key={job.id}
             onClick={() => router.push(`/jobs/${job.id}`)}
-            className="w-full bg-white rounded-2xl shadow-sm border border-gray-100 p-4 text-right flex flex-col gap-1 active:scale-[0.98] transition-transform"
+            className="w-full bg-white rounded-2xl shadow-sm border border-gray-100 p-4 text-right flex flex-col gap-1.5 active:opacity-80 transition-opacity"
           >
             <div className="flex items-center justify-between">
               <span className="font-semibold text-gray-800 text-base">
