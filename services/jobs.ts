@@ -38,6 +38,27 @@ export async function getJobsByStatus(status: JobStatus) {
   return data as Job[];
 }
 
+export async function getUnpaidJobs() {
+  const { data, error } = await supabase
+    .from("jobs")
+    .select("*, customer:customers(*)")
+    .eq("paid", false)
+    .order("date", { ascending: true });
+  if (error) throw error;
+  return data as Job[];
+}
+
+export async function toggleJobPaid(id: string, paid: boolean) {
+  const { data, error } = await supabase
+    .from("jobs")
+    .update({ paid })
+    .eq("id", id)
+    .select("*, customer:customers(*)")
+    .single();
+  if (error) throw error;
+  return data as Job;
+}
+
 export async function getJobsByCustomer(customerId: string) {
   const { data, error } = await supabase
     .from("jobs")

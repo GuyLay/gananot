@@ -4,11 +4,11 @@ import { useEffect, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { format } from "date-fns";
 import { he } from "date-fns/locale";
-import { Phone, Edit, Calendar, RefreshCw, Trash2 } from "lucide-react";
+import { Phone, Edit, Calendar, RefreshCw, Trash2, CheckCircle, Circle } from "lucide-react";
 import AppShell from "@/app/components/AppShell";
 import PageHeader from "@/app/components/PageHeader";
 import StatusBadge from "@/app/components/StatusBadge";
-import { getJob, changeJobStatus, deleteJob } from "@/services/jobs";
+import { getJob, changeJobStatus, deleteJob, toggleJobPaid } from "@/services/jobs";
 import type { Job, JobStatus } from "@/types/database";
 
 const STATUS_ACTIONS: Record<JobStatus, { label: string; newStatus: JobStatus; color: string }[]> = {
@@ -34,6 +34,7 @@ export default function JobDetailsPage() {
   const [job, setJob] = useState<Job | null>(null);
   const [loading, setLoading] = useState(true);
   const [acting, setActing] = useState(false);
+  const [togglingPaid, setTogglingPaid] = useState(false);
 
   useEffect(() => {
     getJob(id)
@@ -51,6 +52,17 @@ export default function JobDetailsPage() {
       setJob(updated);
     } finally {
       setActing(false);
+    }
+  }
+
+  async function handleTogglePaid() {
+    if (!job || togglingPaid) return;
+    setTogglingPaid(true);
+    try {
+      const updated = await toggleJobPaid(id, !job.paid);
+      setJob(updated);
+    } finally {
+      setTogglingPaid(false);
     }
   }
 
@@ -78,7 +90,7 @@ export default function JobDetailsPage() {
         action={
           <button
             onClick={() => router.push(`/jobs/${id}/edit`)}
-            className="p-2 text-gray-500"
+            className="p-2 text-gray-500 min-w-[44px] min-h-[44px] flex items-center justify-center"
           >
             <Edit className="w-5 h-5" />
           </button>
@@ -115,6 +127,32 @@ export default function JobDetailsPage() {
           <div className="flex items-center justify-between">
             <span className="text-gray-500">מחיר</span>
             <span className="text-green-700 font-bold text-xl">₪{job.price.toLocaleString()}</span>
+          </div>
+
+          {/* Paid toggle row */}
+          <div className="flex items-center justify-between pt-1 border-t border-gray-100">
+            <span className="text-gray-500">תשלום</span>
+            <button
+              onClick={handleTogglePaid}
+              disabled={togglingPaid}
+              className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold transition-colors disabled:opacity-60 ${
+                job.paid
+                  ? "bg-green-100 text-green-700 active:bg-green-200"
+                  : "bg-orange-100 text-orange-700 active:bg-orange-200"
+              }`}
+            >
+              {job.paid ? (
+                <>
+                  <CheckCircle className="w-4 h-4" />
+                  שולם
+                </>
+              ) : (
+                <>
+                  <Circle className="w-4 h-4" />
+                  לא שולם
+                </>
+              )}
+            </button>
           </div>
 
           {job.recurrence_days && (

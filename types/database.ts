@@ -17,6 +17,7 @@ export interface Job {
   price: number;
   description: string | null;
   status: JobStatus;
+  paid: boolean;
   recurrence_days: number | null;
   auto_generated: boolean;
   parent_job_id: string | null;
