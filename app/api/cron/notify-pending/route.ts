@@ -82,8 +82,8 @@ export async function GET(request: Request) {
 
   for (const [dateKey, dayJobs] of byDate) {
     if (dayJobs.length === 0) continue;
-    const dayName = format(new Date(dateKey + "T12:00:00"), "EEEE", { locale: he });
-    msg += `\n<b>יום ${dayName}:</b>\n`;
+    const dayName = format(new Date(dateKey + "T12:00:00"), "EEEE, d בMMMM", { locale: he });
+    msg += `\n<b>${dayName}:</b>\n`;
     for (const job of dayJobs) {
       const name  = job.customer?.name  ?? "לקוח";
       const phone = job.customer?.phone ?? "";
