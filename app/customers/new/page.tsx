@@ -24,7 +24,7 @@ export default function NewCustomerPage() {
       const results = await navigator.contacts.select(["name", "tel"], { multiple: false });
       if (!results.length) return;
       const contact = results[0];
-      if (contact.tel?.[0]) setPhone(contact.tel[0].replace(/\s+/g, ""));
+      if (contact.tel?.[0]) setPhone(contact.tel[0]);
       if (!name.trim() && contact.name?.[0]) setName(contact.name[0]);
     } catch {
       // user dismissed or permission denied — do nothing
