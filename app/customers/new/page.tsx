@@ -35,6 +35,7 @@ export default function NewCustomerPage() {
       const results = await navigator.contacts.select(["name", "tel"], { multiple: false });
       if (!results.length) return;
       const contact = results[0];
+      alert("raw tel: " + JSON.stringify(contact.tel));
       if (contact.tel?.[0]) setPhone(normalizePhone(contact.tel[0]));
       if (!name.trim() && contact.name?.[0]) setName(contact.name[0]);
     } catch {
