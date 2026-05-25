@@ -72,7 +72,8 @@ export default function NewCustomerPage() {
           <label className="block text-sm font-medium text-gray-700 mb-1">טלפון</label>
           <div className="flex gap-2">
             <input
-              type="tel"
+              type="text"
+              inputMode="tel"
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
               className="flex-1 border border-gray-300 rounded-xl px-4 py-3 text-base focus:outline-none focus:ring-2 focus:ring-green-500"
