@@ -126,6 +126,35 @@ export async function changeJobStatus(job: Job, newStatus: JobStatus) {
   }
 }
 
+export async function createSpecialJob(
+  job: Job,
+  date: string,
+  price: number,
+  description?: string
+) {
+  const { data: userData } = await supabase.auth.getUser();
+  const user_id = userData.user!.id;
+
+  const { data, error } = await supabase
+    .from("jobs")
+    .insert({
+      user_id,
+      customer_id: job.customer_id,
+      date,
+      price,
+      description: description || null,
+      status: "pending",
+      paid: false,
+      auto_generated: false,
+      is_special_job: true,
+      source_job_id: job.id,
+    })
+    .select("*, customer:customers(*)")
+    .single();
+  if (error) throw error;
+  return data as Job;
+}
+
 export async function deleteJob(id: string) {
   const { error } = await supabase.from("jobs").delete().eq("id", id);
   if (error) throw error;

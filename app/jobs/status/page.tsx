@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { format } from "date-fns";
 import { he } from "date-fns/locale";
-import { Phone, CheckCircle } from "lucide-react";
+import { Phone, CheckCircle, Star } from "lucide-react";
 import AppShell from "@/app/components/AppShell";
 import PageHeader from "@/app/components/PageHeader";
 import StatusBadge from "@/app/components/StatusBadge";
@@ -77,6 +77,12 @@ export default function JobsStatusPage() {
           >
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
+                {job.is_special_job && (
+                  <span className="flex items-center gap-1 text-xs font-semibold text-purple-700 bg-purple-100 px-2 py-0.5 rounded-full">
+                    <Star className="w-3 h-3" />
+                    ביקור מיוחד
+                  </span>
+                )}
                 {/* Show paid badge on non-unpaid tabs */}
                 {activeTab !== "unpaid" && job.paid && (
                   <span className="flex items-center gap-1 text-xs font-semibold text-green-700 bg-green-100 px-2 py-0.5 rounded-full">

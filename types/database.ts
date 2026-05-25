@@ -22,6 +22,8 @@ export interface Job {
   auto_generated: boolean;
   parent_job_id: string | null;
   recurring_group_id: string | null;
+  is_special_job: boolean;
+  source_job_id: string | null;
   created_at: string;
   customer?: Customer;
 }
