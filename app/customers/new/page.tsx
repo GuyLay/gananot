@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { BookUser } from "lucide-react";
 import AppShell from "@/app/components/AppShell";
@@ -15,6 +15,11 @@ export default function NewCustomerPage() {
   const [address, setAddress] = useState("");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+  const [hasContactPicker, setHasContactPicker] = useState(false);
+
+  useEffect(() => {
+    setHasContactPicker("contacts" in navigator);
+  }, []);
 
   function normalizePhone(raw: string): string {
     const s = raw.replace(/\s/g, "");
@@ -28,11 +33,10 @@ export default function NewCustomerPage() {
   }
 
   async function pickContact() {
-    if (!("contacts" in navigator)) { alert("API not supported"); return; }
+    if (!("contacts" in navigator)) return;
     try {
       // @ts-expect-error contacts API not yet in TS lib
       const results = await navigator.contacts.select(["name", "tel"], { multiple: false });
-      alert("results: " + JSON.stringify(results));
       if (!results.length) return;
       const contact = results[0];
       if (contact.tel?.[0]) setPhone(normalizePhone(contact.tel[0]));
@@ -90,7 +94,7 @@ export default function NewCustomerPage() {
               className="flex-1 border border-gray-300 rounded-xl px-4 py-3 text-base focus:outline-none focus:ring-2 focus:ring-green-500"
               placeholder="050-0000000"
             />
-            {"contacts" in navigator && (
+            {hasContactPicker && (
               <button
                 type="button"
                 onClick={pickContact}
