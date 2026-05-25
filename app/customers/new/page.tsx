@@ -15,6 +15,14 @@ export default function NewCustomerPage() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
 
+  function normalizePhone(raw: string): string {
+    const s = raw.replace(/\s/g, "");
+    if (s.startsWith("+972")) return "0" + s.slice(4);
+    if (s.startsWith("972") && s.length >= 11) return "0" + s.slice(3);
+    if (/^\d{9}$/.test(s)) return "0" + s;
+    return raw;
+  }
+
   async function handleSave() {
     if (!name.trim() || !phone.trim()) return;
     setSaving(true);
@@ -58,7 +66,7 @@ export default function NewCustomerPage() {
           <input
             type="tel"
             value={phone}
-            onChange={(e) => setPhone(e.target.value)}
+            onChange={(e) => setPhone(normalizePhone(e.target.value))}
             className="w-full border border-gray-300 rounded-xl px-4 py-3 text-base focus:outline-none focus:ring-2 focus:ring-green-500"
             placeholder="050-0000000"
             autoComplete="tel"
