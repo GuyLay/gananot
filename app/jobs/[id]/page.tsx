@@ -278,7 +278,7 @@ export default function JobDetailsPage() {
           onClick={() => setShowSpecialSheet(false)}
         >
           <div
-            className="w-full bg-white rounded-t-3xl p-6 space-y-4 pb-[max(1.5rem,env(safe-area-inset-bottom))]"
+            className="w-full bg-white rounded-t-3xl p-6 space-y-4 pb-[calc(4.5rem+env(safe-area-inset-bottom))]"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between mb-1">
