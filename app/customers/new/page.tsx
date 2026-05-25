@@ -28,18 +28,17 @@ export default function NewCustomerPage() {
   }
 
   async function pickContact() {
-    // Contact Picker API — supported on iOS Safari 14.5+ and Android Chrome
-    if (!("contacts" in navigator)) return;
+    if (!("contacts" in navigator)) { alert("API not supported"); return; }
     try {
       // @ts-expect-error contacts API not yet in TS lib
       const results = await navigator.contacts.select(["name", "tel"], { multiple: false });
+      alert("results: " + JSON.stringify(results));
       if (!results.length) return;
       const contact = results[0];
-      alert("raw tel: " + JSON.stringify(contact.tel));
       if (contact.tel?.[0]) setPhone(normalizePhone(contact.tel[0]));
       if (!name.trim() && contact.name?.[0]) setName(contact.name[0]);
-    } catch {
-      // user dismissed or permission denied — do nothing
+    } catch (e) {
+      alert("error: " + String(e));
     }
   }
 
