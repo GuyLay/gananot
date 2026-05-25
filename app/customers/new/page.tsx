@@ -16,6 +16,17 @@ export default function NewCustomerPage() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
 
+  function normalizePhone(raw: string): string {
+    const s = raw.replace(/\s/g, "");
+    // +972XXXXXXXXX → 0XXXXXXXXX
+    if (s.startsWith("+972")) return "0" + s.slice(4);
+    // 972XXXXXXXXX (no plus) → 0XXXXXXXXX
+    if (s.startsWith("972") && s.length >= 11) return "0" + s.slice(3);
+    // 9 bare digits like 544381584 → 0544381584
+    if (/^\d{9}$/.test(s)) return "0" + s;
+    return raw;
+  }
+
   async function pickContact() {
     // Contact Picker API — supported on iOS Safari 14.5+ and Android Chrome
     if (!("contacts" in navigator)) return;
@@ -24,7 +35,7 @@ export default function NewCustomerPage() {
       const results = await navigator.contacts.select(["name", "tel"], { multiple: false });
       if (!results.length) return;
       const contact = results[0];
-      if (contact.tel?.[0]) setPhone(contact.tel[0]);
+      if (contact.tel?.[0]) setPhone(normalizePhone(contact.tel[0]));
       if (!name.trim() && contact.name?.[0]) setName(contact.name[0]);
     } catch {
       // user dismissed or permission denied — do nothing
