@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { BookUser } from "lucide-react";
 import AppShell from "@/app/components/AppShell";
 import PageHeader from "@/app/components/PageHeader";
 import { createCustomer } from "@/services/customers";
@@ -14,6 +15,21 @@ export default function NewCustomerPage() {
   const [address, setAddress] = useState("");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+
+  async function pickContact() {
+    // Contact Picker API — supported on iOS Safari 14.5+ and Android Chrome
+    if (!("contacts" in navigator)) return;
+    try {
+      // @ts-expect-error contacts API not yet in TS lib
+      const results = await navigator.contacts.select(["name", "tel"], { multiple: false });
+      if (!results.length) return;
+      const contact = results[0];
+      if (contact.tel?.[0]) setPhone(contact.tel[0].replace(/\s+/g, ""));
+      if (!name.trim() && contact.name?.[0]) setName(contact.name[0]);
+    } catch {
+      // user dismissed or permission denied — do nothing
+    }
+  }
 
   async function handleSave() {
     if (!name.trim() || !phone.trim()) return;
@@ -54,13 +70,25 @@ export default function NewCustomerPage() {
 
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">טלפון</label>
-          <input
-            type="tel"
-            value={phone}
-            onChange={(e) => setPhone(e.target.value)}
-            className="w-full border border-gray-300 rounded-xl px-4 py-3 text-base focus:outline-none focus:ring-2 focus:ring-green-500"
-            placeholder="050-0000000"
-          />
+          <div className="flex gap-2">
+            <input
+              type="tel"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+              className="flex-1 border border-gray-300 rounded-xl px-4 py-3 text-base focus:outline-none focus:ring-2 focus:ring-green-500"
+              placeholder="050-0000000"
+            />
+            {"contacts" in navigator && (
+              <button
+                type="button"
+                onClick={pickContact}
+                className="flex items-center gap-1.5 px-4 py-3 bg-gray-100 border border-gray-300 rounded-xl text-sm text-gray-600 font-medium active:opacity-70 whitespace-nowrap"
+              >
+                <BookUser className="w-4 h-4" />
+                אנשי קשר
+              </button>
+            )}
+          </div>
         </div>
 
         <div>
