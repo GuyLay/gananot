@@ -13,40 +13,50 @@ function supabaseAdmin() {
   );
 }
 
-async function sendTelegram(text: string) {
-  const url = `https://api.telegram.org/bot${process.env.TELEGRAM_BOT_TOKEN}/sendMessage`;
-  const res = await fetch(url, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      chat_id: process.env.TELEGRAM_CHAT_ID,
-      text,
-      parse_mode: "HTML",
-    }),
-  });
-  if (!res.ok) {
-    const body = await res.text();
-    throw new Error(`Telegram error: ${body}`);
+// Business days = Sunday (0) through Thursday (4). Skip Friday (5) and Saturday (6).
+function getNext4BusinessDays(from: Date): Date[] {
+  const result: Date[] = [];
+  let cursor = addDays(from, 1);
+  while (result.length < 4) {
+    if (cursor.getDay() !== 5 && cursor.getDay() !== 6) {
+      result.push(new Date(cursor));
+    }
+    cursor = addDays(cursor, 1);
   }
+  return result;
+}
+
+async function sendTelegram(text: string) {
+  const res = await fetch(
+    `https://api.telegram.org/bot${process.env.TELEGRAM_BOT_TOKEN}/sendMessage`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        chat_id: process.env.TELEGRAM_CHAT_ID,
+        text,
+        parse_mode: "HTML",
+      }),
+    }
+  );
+  if (!res.ok) throw new Error(`Telegram error: ${await res.text()}`);
 }
 
 export async function GET(request: Request) {
-  // Vercel automatically sends Authorization: Bearer <CRON_SECRET>
   const auth = request.headers.get("authorization");
   if (auth !== `Bearer ${process.env.CRON_SECRET}`) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   const today = new Date();
-  const todayStr  = format(today, "yyyy-MM-dd");
-  const in7Days   = format(addDays(today, 7), "yyyy-MM-dd");
+  const businessDays = getNext4BusinessDays(today);
+  const dateStrings = businessDays.map((d) => format(d, "yyyy-MM-dd"));
 
   const { data: jobs, error } = await supabaseAdmin()
     .from("jobs")
     .select("*, customer:customers(name, phone)")
     .eq("status", "pending")
-    .gte("date", todayStr)
-    .lte("date", in7Days)
+    .in("date", dateStrings)
     .order("date", { ascending: true });
 
   if (error) {
@@ -55,35 +65,33 @@ export async function GET(request: Request) {
   }
 
   if (!jobs || jobs.length === 0) {
-    await sendTelegram("✅ אין עבודות ממתינות ב-7 הימים הקרובים");
+    await sendTelegram("בוקר טוב! ☀️\n\nאין עבודות ממתינות בארבעת ימי העסקים הבאים ✅");
     return NextResponse.json({ sent: true, count: 0 });
   }
 
-  // Group by date
+  // Group by date key
   const byDate = new Map<string, typeof jobs>();
+  for (const d of dateStrings) byDate.set(d, []);
   for (const job of jobs) {
     const key = (job.date as string).slice(0, 10);
-    if (!byDate.has(key)) byDate.set(key, []);
-    byDate.get(key)!.push(job);
+    byDate.get(key)?.push(job);
   }
 
-  let msg = `📋 <b>עבודות ממתינות — 7 ימים קרובים</b>\n\n`;
+  let msg = `בוקר טוב! ☀️\n\n`;
+  msg += `יש לך ${jobs.length} עבודות ממתינות בארבעת ימי העסקים הבאים:\n`;
 
   for (const [dateKey, dayJobs] of byDate) {
-    const dateLabel = format(new Date(dateKey + "T12:00:00"), "EEEE, d בMMMM", { locale: he });
-    msg += `📅 <b>${dateLabel}</b>\n`;
+    if (dayJobs.length === 0) continue;
+    const dayName = format(new Date(dateKey + "T12:00:00"), "EEEE", { locale: he });
+    msg += `\n<b>יום ${dayName}:</b>\n`;
     for (const job of dayJobs) {
-      const price = `₪${Number(job.price).toLocaleString("he-IL")}`;
-      const name  = job.customer?.name ?? "לקוח";
-      const desc  = job.description ? ` — ${job.description}` : "";
-      msg += `  • ${name} · ${price}${desc}\n`;
+      const name  = job.customer?.name  ?? "לקוח";
+      const phone = job.customer?.phone ?? "";
+      msg += `${name} - ${phone}\n`;
     }
-    msg += "\n";
   }
 
-  const unpaidCount = jobs.filter((j) => !j.paid).length;
-  msg += `סה"כ: <b>${jobs.length} עבודות</b>`;
-  if (unpaidCount > 0) msg += ` · ${unpaidCount} לא שולמו`;
+  msg += `\nאנא אשר את העבודות הבאות מול הלקוחות`;
 
   await sendTelegram(msg);
   return NextResponse.json({ sent: true, count: jobs.length });
