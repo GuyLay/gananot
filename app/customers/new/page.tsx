@@ -17,8 +17,9 @@ export default function NewCustomerPage() {
 
   function normalizePhone(raw: string): string {
     const s = raw.replace(/\s/g, "");
-    if (s.startsWith("+972")) return "0" + s.slice(4);
-    if (s.startsWith("972") && s.length >= 11) return "0" + s.slice(3);
+    // strip +972 or 972, then remove accidental leading 0 before re-adding it
+    if (s.startsWith("+972")) return "0" + s.slice(4).replace(/^0+/, "");
+    if (s.startsWith("972") && s.length >= 11) return "0" + s.slice(3).replace(/^0+/, "");
     if (/^\d{9}$/.test(s)) return "0" + s;
     return raw;
   }
