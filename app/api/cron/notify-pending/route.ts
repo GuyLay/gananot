@@ -27,19 +27,23 @@ function getNext4BusinessDays(from: Date): Date[] {
 }
 
 async function sendTelegram(text: string) {
-  const res = await fetch(
-    `https://api.telegram.org/bot${process.env.TELEGRAM_BOT_TOKEN}/sendMessage`,
-    {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        chat_id: process.env.TELEGRAM_CHAT_ID,
-        text,
-        parse_mode: "HTML",
-      }),
-    }
+  const chatIds = (process.env.TELEGRAM_CHAT_ID ?? "")
+    .split(",")
+    .map((s) => s.trim())
+    .filter(Boolean);
+  await Promise.all(
+    chatIds.map(async (chat_id) => {
+      const res = await fetch(
+        `https://api.telegram.org/bot${process.env.TELEGRAM_BOT_TOKEN}/sendMessage`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ chat_id, text, parse_mode: "HTML" }),
+        }
+      );
+      if (!res.ok) throw new Error(`Telegram error: ${await res.text()}`);
+    })
   );
-  if (!res.ok) throw new Error(`Telegram error: ${await res.text()}`);
 }
 
 export async function GET(request: Request) {
