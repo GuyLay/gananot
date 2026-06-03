@@ -26,11 +26,14 @@ function getNext4BusinessDays(from: Date): Date[] {
   return result;
 }
 
-async function sendTelegram(text: string) {
-  const chatIds = (process.env.TELEGRAM_CHAT_ID ?? "")
-    .split(",")
-    .map((s) => s.trim())
-    .filter(Boolean);
+async function sendTelegramToAll(text: string) {
+  const { data: subscribers } = await supabaseAdmin()
+    .from("telegram_subscribers")
+    .select("chat_id");
+
+  const chatIds = subscribers?.map((s) => s.chat_id) ?? [];
+  if (chatIds.length === 0) return;
+
   await Promise.all(
     chatIds.map(async (chat_id) => {
       const res = await fetch(
@@ -41,7 +44,7 @@ async function sendTelegram(text: string) {
           body: JSON.stringify({ chat_id, text, parse_mode: "HTML" }),
         }
       );
-      if (!res.ok) throw new Error(`Telegram error: ${await res.text()}`);
+      if (!res.ok) console.error(`Telegram error for ${chat_id}: ${await res.text()}`);
     })
   );
 }
@@ -69,7 +72,7 @@ export async function GET(request: Request) {
   }
 
   if (!jobs || jobs.length === 0) {
-    await sendTelegram("בוקר טוב! ☀️\n\nאין עבודות ממתינות בארבעת ימי העסקים הבאים ✅");
+    await sendTelegramToAll("בוקר טוב! ☀️\n\nאין עבודות ממתינות בארבעת ימי העסקים הבאים ✅");
     return NextResponse.json({ sent: true, count: 0 });
   }
 
@@ -97,6 +100,6 @@ export async function GET(request: Request) {
 
   msg += `\nאנא אשר את העבודות הבאות מול הלקוחות`;
 
-  await sendTelegram(msg);
+  await sendTelegramToAll(msg);
   return NextResponse.json({ sent: true, count: jobs.length });
 }
